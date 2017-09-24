@@ -2,49 +2,12 @@
 
 #include <vector>
 #include <iostream>
-#include <cstdlib>
 
 using namespace std;
 
-struct Connection
-{
-  double weight;
-  double deltaWeight;
-}
-
-class Neuron;
+class Neuron {};
 
 typedef vector<Neuron> Layer;
-
-// *****class Neuron
-
-class Neuron
-{
-public:
-  Neuron(unsigned numOutputs);
-
-private:
-  static double rendomWeight(void) {return rand() / double(RAND_MAX); }
-  //By using static, the value is preserved even after the function
-  //so by calling it again you can use the preserved value
-  //But you cant access from outside
-  double m_outputVal;
-  vector<Connection> m_outputWeights;
-
-};
-
-Neuron::Neuron(unsigned numOutputs)
-{
-  for (unsigned c = 0; c < numOutputs; c++)
-  {
-    m_outputWeights.push_back(Connection());
-    m_outputWeights.back().weight = randomWeight();
-  }
-}
-
-
-
-// *****class Net
 
 class Net
 {
@@ -65,13 +28,12 @@ Net::Net(const vector<unsigned> &topology)
   for (unsigned layerNum  = 0; layerNum < numLayers; ++layerNum)
   {
     m_layers.push_back(Layer());
-    unsigned numOutputs =  layerNum == topology.size() - 1 ? 0 : topology [layerNum+1];
     // we have made a new Layer, now fill it with neurons
     // and a bias neuron to the layerNum
     for (unsigned neuronNum = 0; neuronNum <= topology[layerNum]; ++neuronNum)
     // <= because of bias
     {
-      m_layers.back().push_back(Neuron(numOutputs));
+      m_layers.back().push_back(Neuron());
       cout << "Made a Neuron!" << endl;
 
     }
