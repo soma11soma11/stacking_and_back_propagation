@@ -25,18 +25,78 @@ public:
   void setOutputVal(double val) {m_outputVal = val;}
   double getOutputVal(void) const {return m_outputVal;}
   void feedForward(const Layer &prevLayer);
+  void calcOutputGradients(double targetVal);
+  void calcHiddenGradients(const Layer &nextLayer);
+  void updateInputWeights(Layer &prevLayer);
 
 private:
+  static double eta;  // [0.0-1.0] overall net training rate
+  static double alpha //multiplier of last weight change (momentum)
   static double transferFunction(double x);
   static double transferFunctionDerivative(double x);
   static double rendomWeight(void) {return rand() / double(RAND_MAX); }
   //By using static, the value is preserved even after the function
   //so by calling it again you can use the preserved value
   //But you cant access from outside
-  double m_outputVal;
+  double sumDOW(const Layer &nextLayer) const;
+   m_outputVal;
   vector<Connection> m_outputWeights;
-  unsigned m_myindex;
+  unsigned m_myIndex;
+  double m_gradient;
 };
+
+double Neuron::eta = 0.15;
+double Neuron::alpha = 0.5;
+
+
+void Neuron::updateInputWeights(Layer &prevLayer)
+{
+  // The weights to be updated are in the connection container
+  // in the neurons in the precedingt layer.
+
+  for (unsigned n = 0; n < prevLayer.size(); ++n) {
+    Neuron &neuron = prevLayer[n];
+    double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
+
+    double newDeltaWeight =
+    // Individual input, magnified by the gradient and train rate
+    eta
+    * neuron_getOutputVal()
+    *m_gradient
+    //Also add momentum = a fraction of the previos delta weight
+    + alphs
+    *oldDeltaWeight;
+
+    neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
+    neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;
+
+
+  }
+
+}
+
+double Neuron::sumDOW(const Layer &nextLayer) const
+{
+  double sum = 0.0;
+
+  // Sum our contribution of the erros at the nodes we feedForward
+
+  for (unsigned n = 0; n < nextLayer.size() - 1; ++n){
+    sum += m_outputWeights[n].weight * nextLayer[n].m_gradient;
+  }
+}
+
+void Neuron::calcHiddenGradients(const Layer &nextLayer)
+{
+  double dow = sumDOW(nextLayer);
+  m_gradient = dow * Neuron::transferFunctionDerivative(m_outputVal);
+}
+
+void Neuron::calcOutputGradients(dounle targetVal){
+  double delta = targetVal - m_outputVal;
+  m_gradient = delta * Neuron::transferFunctionDerivative(m_outputVal);
+}
+
 
 double Neuron::transferFunction(double x)
 {
@@ -80,8 +140,8 @@ class Net{
 public:
   Net (const vector<unsigned> &topology);
   void feedForward(const vector<double> &inputVals);
-  void backProp(const vector<double> &targetVals) {};
-  void getResults(vector<double> &resultVals) const {};
+  void backProp(const vector<double> &targetVals);
+  void getResults(vector<double> &resultVals) const;
 
 private:
   vector<Layer> m_layers; // m_layers[layerNum][neuronNum]
@@ -89,6 +149,15 @@ private:
   double m_recentAverageError;
   double m_recentAverageSmoothingFactor;
 };
+
+void Net::getResults(vector<double> &resultVals) const
+{
+  resultVals.clear();
+
+  for (unsigned n =0; n < m_layers.back().size() - 1; ++n){
+    resultVals.push_back(m_layers.back()[n].getOutputVal());
+  }
+}
 
 void Net::backProp(const vector<double> &targetVals)
 {
@@ -135,7 +204,7 @@ void Net::backProp(const vector<double> &targetVals)
 
     for (unsigned n = 0; n <layer.size() - 1; ++n){
       layer[n].updateInputWeights(prevLayer);
-      
+
     }
   }
 
@@ -175,6 +244,8 @@ Net::Net(const vector<unsigned> &topology){
 }
 
 int main(){
+
+
   vector<unsigned> topology;
   topology.push_back(3);
   topology.push_back(2);
