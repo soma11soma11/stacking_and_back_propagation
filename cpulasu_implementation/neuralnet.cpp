@@ -1,8 +1,11 @@
+//Neural Net
+
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
-class Neuron;
+class Neuron {};
 
 typedef vector<Neuron> Layer;
 
@@ -10,16 +13,16 @@ class Net
 {
 public:
   Net (const vector<unsigned> &topology);
-  void feedForward(const vector<double> &inputVals);
-  void backProp(const vector<double> &targetVals);
-  void getResults(vector<double> &resultVals) const;
+  void feedForward(const vector<double> &inputVals) {};
+  void backProp(const vector<double> &targetVals) {};
+  void getResults(vector<double> &resultVals) const {};
 
 private:
   vector<Layer> m_layers; // m_layers[layerNum][neuronNum]
 };
 
 
-Net::Net (const vector<unsigned> &topology)
+Net::Net(const vector<unsigned> &topology)
 {
   unsigned numLayers = topology.size();
   for (unsigned layerNum  = 0; layerNum < numLayers; ++layerNum)
@@ -31,6 +34,8 @@ Net::Net (const vector<unsigned> &topology)
     // <= because of bias
     {
       m_layers.back().push_back(Neuron());
+      cout << "Made a Neuron!" << endl;
+
     }
 
 
@@ -40,6 +45,10 @@ Net::Net (const vector<unsigned> &topology)
 int main()
 {
   vector<unsigned> topology;
+  topology.push_back(3);
+  topology.push_back(2);
+  topology.push_back(1);
+
   Net myNet(topology);
 
   vector<double> inputVals;
